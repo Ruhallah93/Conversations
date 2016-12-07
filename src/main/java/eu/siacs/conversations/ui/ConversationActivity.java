@@ -18,8 +18,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.v4.widget.SlidingPaneLayout;
-import android.support.v4.widget.SlidingPaneLayout.PanelSlideListener;
 import android.util.Log;
 import android.util.Pair;
 import android.view.Gravity;
@@ -32,6 +30,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.Toast;
@@ -132,9 +132,18 @@ public class ConversationActivity extends XmppActivity
 	}
 
 	public void showConversationsOverview() {
-		if (mContentView instanceof SlidingPaneLayout) {
-			SlidingPaneLayout mSlidingPaneLayout = (SlidingPaneLayout) mContentView;
-			mSlidingPaneLayout.openPane();
+		if (mContentView instanceof FrameLayout) {
+			EnhancedListView mEnhancedListView = (EnhancedListView) mContentView.findViewById(R.id.list);
+			mEnhancedListView.setVisibility(View.VISIBLE);
+
+			updateActionBarTitle();
+			invalidateOptionsMenu();
+			hideKeyboard();
+			if (xmppConnectionServiceBound) {
+				xmppConnectionService.getNotificationService()
+						.setOpenConversation(null);
+			}
+			closeContextMenu();
 		}
 	}
 
@@ -149,20 +158,23 @@ public class ConversationActivity extends XmppActivity
 	}
 
 	public void hideConversationsOverview() {
-		if (mContentView instanceof SlidingPaneLayout) {
-			SlidingPaneLayout mSlidingPaneLayout = (SlidingPaneLayout) mContentView;
-			mSlidingPaneLayout.closePane();
+		if (mContentView instanceof FrameLayout) {
+			EnhancedListView mEnhancedListView = (EnhancedListView) mContentView.findViewById(R.id.list);
+			mEnhancedListView.setVisibility(View.GONE);
+
+			listView.discardUndo();
+			openConversation();
 		}
 	}
 
 	public boolean isConversationsOverviewHideable() {
-		return mContentView instanceof SlidingPaneLayout;
+		return mContentView instanceof FrameLayout;
 	}
 
 	public boolean isConversationsOverviewVisable() {
-		if (mContentView instanceof SlidingPaneLayout) {
-			SlidingPaneLayout mSlidingPaneLayout = (SlidingPaneLayout) mContentView;
-			return mSlidingPaneLayout.isOpen();
+		if (mContentView instanceof FrameLayout) {
+			EnhancedListView mEnhancedListView = (EnhancedListView) mContentView.findViewById(R.id.list);
+			return mEnhancedListView.getVisibility() == View.VISIBLE;
 		} else {
 			return true;
 		}
@@ -294,13 +306,14 @@ public class ConversationActivity extends XmppActivity
 		if (mContentView == null) {
 			mContentView = findViewById(R.id.content_view_ll);
 		}
-		if (mContentView instanceof SlidingPaneLayout) {
-			SlidingPaneLayout mSlidingPaneLayout = (SlidingPaneLayout) mContentView;
-			mSlidingPaneLayout.setParallaxDistance(150);
-			mSlidingPaneLayout
+
+		if (mContentView instanceof FrameLayout) {
+			FrameLayout mFrameLayout = (FrameLayout) mContentView;
+			/*mFrameLayout.setParallaxDistance(150);
+			mFrameLayout
 					.setShadowResource(R.drawable.es_slidingpane_shadow);
-			mSlidingPaneLayout.setSliderFadeColor(0);
-			mSlidingPaneLayout.setPanelSlideListener(new PanelSlideListener() {
+			mFrameLayout.setSliderFadeColor(0);
+			mFrameLayout.setPanelSlideListener(new PanelSlideListener() {
 
 				@Override
 				public void onPanelOpened(View arg0) {
@@ -325,7 +338,7 @@ public class ConversationActivity extends XmppActivity
 					// TODO Auto-generated method stub
 
 				}
-			});
+			});*/
 		}
 	}
 
@@ -1296,7 +1309,7 @@ public class ConversationActivity extends XmppActivity
 			hideConversationsOverview();
 			mUnprocessedNewIntent = false;
 			openConversation();
-			if (mContentView instanceof SlidingPaneLayout) {
+			if (mContentView instanceof FrameLayout) {
 				updateActionBarTitle(true); //fixes bug where slp isn't properly closed yet
 			}
 			if (downloadUuid != null) {
