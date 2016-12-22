@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
-	<item
+	<!--<item
 		android:id="@+id/action_add_account"
 		android:icon="?attr/icon_add_person"
 		android:showAsAction="always"
@@ -17,7 +17,7 @@
 		android:title="@string/enable_all_accounts"/>
 	<item
 		android:id="@+id/action_disable_all"
-		android:title="@string/disable_all_accounts"/>
+		android:title="@string/disable_all_accounts"/>-->
 	<item
 		android:id="@+id/action_settings"
 		android:orderInCategory="100"

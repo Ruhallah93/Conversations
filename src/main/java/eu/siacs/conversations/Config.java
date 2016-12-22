@@ -1,6 +1,9 @@
 package eu.siacs.conversations;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.widget.Toast;
 
 import eu.siacs.conversations.xmpp.chatstate.ChatState;
 
@@ -39,7 +42,21 @@ public final class Config {
 	public static final String BUG_REPORTS = "bugs@conversations.im";
 
 
-	public static final String DOMAIN_LOCK = null; //only allow account creation for this domain
+	//public static final String DOMAIN_LOCK = "192.168.1.102"; //only allow account creation for this domain
+	//by me
+	public static final String DOMAIN_NAME = "domain_name";
+	public static final String CONFERENCE_NAME = "conference.";
+
+	public static String getDOMAIN_LOCK() {
+		return ConversationsApp.getSharedPreferences().getString(DOMAIN_NAME, null);
+	}
+
+	public static void setDOMAIN_LOCK(String domain_name) {
+		Context context = ConversationsApp.getContext();
+		if (ConversationsApp.getSharedPreferences().edit().putString(DOMAIN_NAME, domain_name).commit())
+			Toast.makeText(context, context.getString(R.string.insert_domain_name_secess),Toast.LENGTH_LONG).show();
+	}
+
 	public static final String MAGIC_CREATE_DOMAIN = "conversations.im";
 	public static final boolean DISALLOW_REGISTRATION_IN_UI = false; //hide the register checkbox
 

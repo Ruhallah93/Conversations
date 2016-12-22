@@ -36,7 +36,7 @@ public class AccountAdapter extends ArrayAdapter<Account> {
 			view = inflater.inflate(R.layout.account_row, parent, false);
 		}
 		TextView jid = (TextView) view.findViewById(R.id.account_jid);
-		if (Config.DOMAIN_LOCK != null) {
+		if (Config.getDOMAIN_LOCK() != null) {
 			jid.setText(account.getJid().getLocalpart());
 		} else {
 			jid.setText(account.getJid().toBareJid().toString());

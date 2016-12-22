@@ -38,7 +38,25 @@
                 android:text="@string/welcome_text"
                 android:textColor="?attr/color_text_primary"
                 android:textSize="?attr/TextSizeBody"/>
+            <EditText
+                android:id="@+id/domain_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/domain_name"
+                android:inputType="text"
+                android:textColor="?attr/color_text_primary"
+                android:textColorHint="?attr/color_text_secondary"
+                android:textSize="?attr/TextSizeBody"/>
             <Button
+                android:id="@+id/save_domain_name"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:text="@string/save"
+                android:textColor="@color/accent"/>
+            <Button
+                android:visibility="gone"
                 android:id="@+id/create_account"
                 style="?android:attr/borderlessButtonStyle"
                 android:layout_width="wrap_content"

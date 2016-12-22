@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <group
+        android:id="@+id/grp_1"
+        android:checkableBehavior="single">
+        <item
+            android:id="@+id/action_add"
+            android:icon="@drawable/ic_add_white_24dp"
+            android:orderInCategory="10"
+            android:title="@string/action_add"
+            app:showAsAction="always" />
+
+        <item
+            android:id="@+id/action_add_secure_conversation"
+            android:icon="?attr/icon_secure"
+            android:orderInCategory="10"
+            android:title="@string/action_add_secure_conversation"
+            app:showAsAction="always" />
+
+        <item
+            android:id="@+id/action_create_conference"
+            android:icon="?attr/icon_add_group"
+            android:title="@string/create_conference"
+            app:showAsAction="always" />
+
+    </group>
+    <group
+        android:id="@+id/grp_2"
+        android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/action_accounts"
+            android:orderInCategory="90"
+            app:showAsAction="never"
+            android:title="@string/action_accounts" />
+
+        <item
+            android:id="@+id/action_settings"
+            android:orderInCategory="100"
+            android:title="@string/action_settings"
+            app:showAsAction="never" />
+
+        <item
+            android:id="@+id/action_support"
+            android:orderInCategory="100"
+            android:title="@string/support"
+            app:showAsAction="never" />
+
+        <item
+            android:id="@+id/action_logout"
+            android:orderInCategory="100"
+            android:title="@string/logout"
+            app:showAsAction="never" />
+    </group>
+
+</menu>

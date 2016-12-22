@@ -3,15 +3,7 @@ package eu.siacs.conversations.ui;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.app.ActionBar;
-import android.app.ActionBar.Tab;
-import android.app.ActionBar.TabListener;
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.Fragment;
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
-import android.app.ListFragment;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -25,11 +17,17 @@ import android.nfc.NfcAdapter;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.v13.app.FragmentPagerAdapter;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.ListFragment;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.text.Editable;
-import android.text.TextWatcher;
+
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.SearchView;
 import android.util.Log;
 import android.util.Pair;
 import android.view.ContextMenu;
@@ -65,11 +63,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import eu.siacs.conversations.Config;
 import eu.siacs.conversations.R;
 import eu.siacs.conversations.entities.Account;
-import eu.siacs.conversations.entities.Blockable;
 import eu.siacs.conversations.entities.Bookmark;
 import eu.siacs.conversations.entities.Contact;
 import eu.siacs.conversations.entities.Conversation;
 import eu.siacs.conversations.entities.ListItem;
+import eu.siacs.conversations.entities.Message;
 import eu.siacs.conversations.entities.Presence;
 import eu.siacs.conversations.services.XmppConnectionService.OnRosterUpdate;
 import eu.siacs.conversations.ui.adapter.KnownHostsAdapter;
@@ -84,8 +82,8 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
 
     public int conference_context_id;
     public int contact_context_id;
-    private Tab mContactsTab;
-    private Tab mConferencesTab;
+    private ActionBar.Tab mContactsTab;
+    private ActionBar.Tab mConferencesTab;
     private ViewPager mViewPager;
     private ListPagerAdapter mListPagerAdapter;
     private List<ListItem> contacts = new ArrayList<>();
@@ -96,13 +94,13 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
     private List<String> mKnownHosts;
     private List<String> mKnownConferenceHosts;
     private Invite mPendingInvite = null;
-    private EditText mSearchEditText;
+    private SearchView mSearchEditText;
     private AtomicBoolean mRequestedContactsPermission = new AtomicBoolean(false);
-    private final int REQUEST_SYNC_CONTACTS = 0x3b28cf;
-    private final int REQUEST_CREATE_CONFERENCE = 0x3b39da;
+    private final int REQUEST_SYNC_CONTACTS = 1;
+    private final int REQUEST_CREATE_CONFERENCE = 2;
     private Dialog mCurrentDialog = null;
 
-    private MenuItem.OnActionExpandListener mOnActionExpandListener = new MenuItem.OnActionExpandListener() {
+    private MenuItemCompat.OnActionExpandListener mOnActionExpandListener = new MenuItemCompat.OnActionExpandListener() {
 
         @Override
         public boolean onMenuItemActionExpand(MenuItem item) {
@@ -123,60 +121,71 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         @Override
         public boolean onMenuItemActionCollapse(MenuItem item) {
             hideKeyboard();
-            mSearchEditText.setText("");
+            mSearchEditText.setQuery("", false);
             filter(null);
             return true;
         }
     };
     private boolean mHideOfflineContacts = false;
-    private TabListener mTabListener = new TabListener() {
+    private ActionBar.TabListener mTabListener = new ActionBar.TabListener() {
 
         @Override
-        public void onTabUnselected(Tab tab, FragmentTransaction ft) {
-            return;
-        }
-
-        @Override
-        public void onTabSelected(Tab tab, FragmentTransaction ft) {
+        public void onTabSelected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
             mViewPager.setCurrentItem(tab.getPosition());
             onTabChanged();
         }
 
         @Override
-        public void onTabReselected(Tab tab, FragmentTransaction ft) {
-            return;
+        public void onTabUnselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+
+        }
+
+        @Override
+        public void onTabReselected(ActionBar.Tab tab, android.support.v4.app.FragmentTransaction ft) {
+
         }
     };
     private ViewPager.SimpleOnPageChangeListener mOnPageChangeListener = new ViewPager.SimpleOnPageChangeListener() {
         @Override
         public void onPageSelected(int position) {
-            if (getActionBar() != null) {
-                getActionBar().setSelectedNavigationItem(position);
+            if (getSupportActionBar() != null) {
+                getSupportActionBar().setSelectedNavigationItem(position);
             }
             onTabChanged();
         }
     };
-    private TextWatcher mSearchTextWatcher = new TextWatcher() {
+    private SearchView.OnQueryTextListener mSearchTextWatcher = new SearchView.OnQueryTextListener() {
 
         @Override
-        public void afterTextChanged(Editable editable) {
-            filter(editable.toString());
+        public boolean onQueryTextSubmit(String query) {
+            int pos = getSupportActionBar().getSelectedNavigationIndex();
+            if (pos == 0) {
+                if (contacts.size() == 1) {
+                    openConversationForContact((Contact) contacts.get(0));
+                    return true;
+                }
+            } else {
+                if (conferences.size() == 1) {
+                    openConversationsForBookmark((Bookmark) conferences.get(0));
+                    return true;
+                }
+            }
+            hideKeyboard();
+            mListPagerAdapter.requestFocus(pos);
+            return false;
         }
 
         @Override
-        public void beforeTextChanged(CharSequence s, int start, int count,
-                                      int after) {
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
+        public boolean onQueryTextChange(String newText) {
+            filter(newText);
+            return false;
         }
     };
 
     private TextView.OnEditorActionListener mSearchDone = new TextView.OnEditorActionListener() {
         @Override
         public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-            int pos = getActionBar().getSelectedNavigationIndex();
+            int pos = getSupportActionBar().getSelectedNavigationIndex();
             if (pos == 0) {
                 if (contacts.size() == 1) {
                     openConversationForContact((Contact) contacts.get(0));
@@ -199,8 +208,9 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         public void onTagClicked(String tag) {
             if (mMenuSearchView != null) {
                 mMenuSearchView.expandActionView();
-                mSearchEditText.setText("");
-                mSearchEditText.append(tag);
+                String txt = "";
+                txt += tag;
+                mSearchEditText.setQuery(txt, false);
                 filter(tag);
             }
         }
@@ -236,6 +246,11 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
     };
     private Toast mToast;
 
+    public enum ActionMenu {
+        NEW_CHAT, NEW_SECRET_CHAT, CREATE_NEW_GROUP
+    }
+    private ActionMenu actionMenu;
+
     protected void hideToast() {
         if (mToast != null) {
             mToast.cancel();
@@ -257,8 +272,9 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_conversation);
+
         mViewPager = (ViewPager) findViewById(R.id.start_conversation_view_pager);
-        ActionBar actionBar = getActionBar();
+        ActionBar actionBar = getSupportActionBar();
         actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 
         mContactsTab = actionBar.newTab().setText(R.string.contacts)
@@ -269,14 +285,13 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         actionBar.addTab(mConferencesTab);
 
         mViewPager.setOnPageChangeListener(mOnPageChangeListener);
-        mListPagerAdapter = new ListPagerAdapter(getFragmentManager());
+        mListPagerAdapter = new ListPagerAdapter(getSupportFragmentManager());
         mViewPager.setAdapter(mListPagerAdapter);
 
         mConferenceAdapter = new ListItemAdapter(this, conferences);
         mContactsAdapter = new ListItemAdapter(this, contacts);
         ((ListItemAdapter) mContactsAdapter).setOnTagClickedListener(this.mOnTagClickedListener);
         this.mHideOfflineContacts = getPreferences().getBoolean("hide_offline", false);
-
     }
 
     @Override
@@ -307,6 +322,10 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         Conversation conversation = xmppConnectionService
                 .findOrCreateConversation(contact.getAccount(),
                         contact.getJid(), false);
+
+        if (actionMenu == ActionMenu.NEW_SECRET_CHAT)
+            conversation.setNextEncryption(Message.ENCRYPTION_OTR);
+
         switchToConversation(conversation);
     }
 
@@ -366,7 +385,7 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 xmppConnectionService.deleteContactOnServer(contact);
-                filter(mSearchEditText.getText().toString());
+                filter(mSearchEditText.getQuery().toString());
             }
         });
         builder.create().show();
@@ -389,7 +408,7 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
                 Account account = bookmark.getAccount();
                 account.getBookmarks().remove(bookmark);
                 xmppConnectionService.pushBookmarks(account);
-                filter(mSearchEditText.getText().toString());
+                filter(mSearchEditText.getQuery().toString());
             }
         });
         builder.create().show();
@@ -442,8 +461,12 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         final AutoCompleteTextView jid = (AutoCompleteTextView) dialogView.findViewById(R.id.jid);
         final TextView jabberIdDesc = (TextView) dialogView.findViewById(R.id.jabber_id);
         jabberIdDesc.setText(R.string.conference_address);
-        jid.setHint(R.string.conference_address_example);
-        jid.setAdapter(new KnownHostsAdapter(this, R.layout.simple_list_item, mKnownConferenceHosts));
+        if (Config.getDOMAIN_LOCK() == null)
+            jid.setHint(R.string.conference_address_example);
+        else
+            jid.setHint(R.string.room);
+        if (Config.getDOMAIN_LOCK() == null)
+            jid.setAdapter(new KnownHostsAdapter(this, R.layout.simple_list_item, mKnownConferenceHosts));
         if (prefilledJid != null) {
             jid.append(prefilledJid);
         }
@@ -470,7 +493,12 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
                         }
                         final Jid conferenceJid;
                         try {
-                            conferenceJid = Jid.fromString(jid.getText().toString());
+                            //conferenceJid = Jid.fromString(jid.getText().toString());
+                            if (Config.getDOMAIN_LOCK() != null) {
+                                conferenceJid = Jid.fromParts(jid.getText().toString(), Config.CONFERENCE_NAME + Config.getDOMAIN_LOCK(), null);
+                            } else {
+                                conferenceJid = Jid.fromString(jid.getText().toString());
+                            }
                         } catch (final InvalidJidException e) {
                             jid.setError(getString(R.string.invalid_jid));
                             return;
@@ -552,8 +580,8 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         }
         Jid jid;
         try {
-            if (Config.DOMAIN_LOCK != null) {
-                jid = Jid.fromParts((String) spinner.getSelectedItem(), Config.DOMAIN_LOCK, null);
+            if (Config.getDOMAIN_LOCK() != null) {
+                jid = Jid.fromParts((String) spinner.getSelectedItem(), Config.getDOMAIN_LOCK(), null);
             } else {
                 jid = Jid.fromString((String) spinner.getSelectedItem());
             }
@@ -594,20 +622,22 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         MenuItem menuHideOffline = menu.findItem(R.id.action_hide_offline);
         menuHideOffline.setChecked(this.mHideOfflineContacts);
         mMenuSearchView = menu.findItem(R.id.action_search);
-        mMenuSearchView.setOnActionExpandListener(mOnActionExpandListener);
-        View mSearchView = mMenuSearchView.getActionView();
-        mSearchEditText = (EditText) mSearchView
-                .findViewById(R.id.search_field);
-        mSearchEditText.addTextChangedListener(mSearchTextWatcher);
-        mSearchEditText.setOnEditorActionListener(mSearchDone);
-        if (getActionBar().getSelectedNavigationIndex() == 0) {
+        //mMenuSearchView.setOnActionExpandListener(mOnActionExpandListener);
+        MenuItemCompat.setOnActionExpandListener(mMenuSearchView, mOnActionExpandListener);
+        mSearchEditText = (SearchView) MenuItemCompat.getActionView(mMenuSearchView);
+                //mMenuSearchView.getActionView();
+        mSearchEditText.setOnQueryTextListener(mSearchTextWatcher);
+        //mSearchEditText.setOnEditorActionListener(mSearchDone);
+
+        if (getSupportActionBar().getSelectedNavigationIndex() == 0) {
             menuCreateConference.setVisible(false);
         } else {
             menuCreateContact.setVisible(false);
         }
         if (mInitialJid != null) {
             mMenuSearchView.expandActionView();
-            mSearchEditText.append(mInitialJid);
+            String txt = mSearchEditText.getQuery().toString();
+            mSearchEditText.setQuery(txt + mInitialJid, false);
             filter(mInitialJid);
         }
         return super.onCreateOptionsMenu(menu);
@@ -632,14 +662,14 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
                 mHideOfflineContacts = !item.isChecked();
                 getPreferences().edit().putBoolean("hide_offline", mHideOfflineContacts).commit();
                 if (mSearchEditText != null) {
-                    filter(mSearchEditText.getText().toString());
+                    filter(mSearchEditText.getQuery().toString());
                 }
                 invalidateOptionsMenu();
         }
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
+    /*@Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_SEARCH && !event.isLongPress()) {
             openSearch();
@@ -649,12 +679,13 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         if (c > 32) {
             if (mSearchEditText != null && !mSearchEditText.isFocused()) {
                 openSearch();
-                mSearchEditText.append(Character.toString((char) c));
+                String txt = mSearchEditText.getQuery().toString();
+                mSearchEditText.setQuery(txt + Character.toString((char) c), false);
                 return true;
             }
         }
         return super.onKeyUp(keyCode, event);
-    }
+    }*/
 
     private void openSearch() {
         if (mMenuSearchView != null) {
@@ -767,7 +798,7 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         this.mActivatedAccounts.clear();
         for (Account account : xmppConnectionService.getAccounts()) {
             if (account.getStatus() != Account.State.DISABLED) {
-                if (Config.DOMAIN_LOCK != null) {
+                if (Config.getDOMAIN_LOCK() != null) {
                     this.mActivatedAccounts.add(account.getJid().getLocalpart());
                 } else {
                     this.mActivatedAccounts.add(account.getJid().toBareJid().toString());
@@ -775,7 +806,7 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
             }
         }
         final Intent intent = getIntent();
-        final ActionBar ab = getActionBar();
+        final ActionBar ab = getSupportActionBar();
         boolean init = intent != null && intent.getBooleanExtra("init", false);
         boolean noConversations = xmppConnectionService.getConversations().size() == 0;
         if ((init || noConversations) && ab != null) {
@@ -790,11 +821,29 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
             this.mPendingInvite = null;
         } else if (!handleIntent(getIntent())) {
             if (mSearchEditText != null) {
-                filter(mSearchEditText.getText().toString());
+                filter(mSearchEditText.getQuery().toString());
             } else {
                 filter(null);
             }
         }
+
+        if (intent != null) {
+            int Case = intent.getIntExtra("case", 0);
+            switch (Case) {
+                case R.id.action_add:
+                    actionMenu = ActionMenu.NEW_CHAT;
+                    break;
+                case R.id.action_add_secure_conversation:
+                    actionMenu = ActionMenu.NEW_SECRET_CHAT;
+                    break;
+                case R.id.action_create_conference:
+                    actionMenu = ActionMenu.CREATE_NEW_GROUP;
+                    mViewPager.setCurrentItem(1);
+                    showCreateConferenceDialog();
+                    break;
+            }
+        }
+
         setIntent(null);
     }
 
@@ -875,8 +924,8 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
         } else {
             if (mMenuSearchView != null) {
                 mMenuSearchView.expandActionView();
-                mSearchEditText.setText("");
-                mSearchEditText.append(invite.getJid().toString());
+                String txt = "";
+                mSearchEditText.setQuery(txt + invite.getJid().toString(), false);
                 filter(invite.getJid().toString());
             } else {
                 mInitialJid = invite.getJid().toString();
@@ -938,7 +987,7 @@ public class StartConversationActivity extends XmppActivity implements OnRosterU
     @Override
     protected void refreshUiReal() {
         if (mSearchEditText != null) {
-            filter(mSearchEditText.getText().toString());
+            filter(mSearchEditText.getQuery().toString());
         }
     }
 

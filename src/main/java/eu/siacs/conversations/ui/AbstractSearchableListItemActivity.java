@@ -2,8 +2,11 @@ package eu.siacs.conversations.ui;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.SearchView;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,9 +27,9 @@ public abstract class AbstractSearchableListItemActivity extends XmppActivity {
 	private final List<ListItem> listItems = new ArrayList<>();
 	private ArrayAdapter<ListItem> mListItemsAdapter;
 
-	private EditText mSearchEditText;
+	private SearchView mSearchEditText;
 
-	private final MenuItem.OnActionExpandListener mOnActionExpandListener = new MenuItem.OnActionExpandListener() {
+	private final MenuItemCompat.OnActionExpandListener mOnActionExpandListener = new MenuItemCompat.OnActionExpandListener() {
 
 		@Override
 		public boolean onMenuItemActionExpand(final MenuItem item) {
@@ -49,15 +52,26 @@ public abstract class AbstractSearchableListItemActivity extends XmppActivity {
 			final InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 			imm.hideSoftInputFromWindow(mSearchEditText.getWindowToken(),
 					InputMethodManager.HIDE_IMPLICIT_ONLY);
-			mSearchEditText.setText("");
+			mSearchEditText.setQuery("", true);
 			filterContacts();
 			return true;
 		}
 	};
 
-	private final TextWatcher mSearchTextWatcher = new TextWatcher() {
+	private final SearchView.OnQueryTextListener mSearchTextWatcher = new SearchView.OnQueryTextListener() {
 
 		@Override
+		public boolean onQueryTextSubmit(String query) {
+			return false;
+		}
+
+		@Override
+		public boolean onQueryTextChange(String newText) {
+			filterContacts(newText);
+			return false;
+		}
+
+		/*@Override
 		public void afterTextChanged(final Editable editable) {
 			filterContacts(editable.toString());
 		}
@@ -70,7 +84,7 @@ public abstract class AbstractSearchableListItemActivity extends XmppActivity {
 		@Override
 		public void onTextChanged(final CharSequence s, final int start, final int before,
 				final int count) {
-		}
+		}*/
 	};
 
 	public ListView getListView() {
@@ -81,7 +95,7 @@ public abstract class AbstractSearchableListItemActivity extends XmppActivity {
 		return listItems;
 	}
 
-	public EditText getSearchEditText() {
+	public SearchView getSearchEditText() {
 		return mSearchEditText;
 	}
 
@@ -103,11 +117,16 @@ public abstract class AbstractSearchableListItemActivity extends XmppActivity {
 	public boolean onCreateOptionsMenu(final Menu menu) {
 		getMenuInflater().inflate(R.menu.choose_contact, menu);
 		final MenuItem menuSearchView = menu.findItem(R.id.action_search);
-		final View mSearchView = menuSearchView.getActionView();
-		mSearchEditText = (EditText) mSearchView
-			.findViewById(R.id.search_field);
-		mSearchEditText.addTextChangedListener(mSearchTextWatcher);
-		menuSearchView.setOnActionExpandListener(mOnActionExpandListener);
+		//final View mSearchView = menuSearchView.getActionView();
+		mSearchEditText = (SearchView) MenuItemCompat.getActionView(menuSearchView);
+				//(EditText) mSearchView.findViewById(R.id.search_field);
+		mSearchEditText.setOnQueryTextListener(mSearchTextWatcher);
+				//.addTextChangedListener(mSearchTextWatcher);
+		try {
+			MenuItemCompat.setOnActionExpandListener(menuSearchView, mOnActionExpandListener);
+		}catch (Exception e) {
+			Log.e("Log", e.toString());
+		}
 		return true;
 	}
 

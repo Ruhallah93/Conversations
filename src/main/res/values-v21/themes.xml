@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="ConversationsTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
-        <item name="android:colorPrimary">@color/primary500</item>
-        <item name="android:colorPrimaryDark">@color/primary700</item>
-        <item name="android:colorAccent">@color/accent</item>
+    <style name="ConversationsTheme" parent="Base.Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/primary500</item>
+        <item name="colorPrimaryDark">@color/primary700</item>
+        <item name="colorAccent">@color/accent</item>
 
         <item name="attr/color_text_primary">@color/black87</item>
         <item name="attr/color_text_secondary">@color/black54</item>
@@ -51,6 +51,7 @@
         <item name="attr/icon_done">@drawable/ic_done_black_24dp</item>
         <item name="attr/icon_group">@drawable/ic_group_white_24dp</item>
         <item name="attr/icon_new">@drawable/ic_add_white_24dp</item>
+        <item name="attr/icon_quote">@drawable/ic_reply_white_24dp</item>
         <item name="attr/icon_refresh">@drawable/ic_refresh_black_24dp</item>
         <item name="attr/icon_new_attachment">@drawable/ic_attach_file_white_24dp</item>
         <item name="attr/icon_not_secure">@drawable/ic_lock_open_white_24dp</item>
@@ -68,10 +69,10 @@
         <item name="attr/icon_notifications_none">@drawable/ic_notifications_none_black54_24dp</item>
     </style>
 
-    <style name="ConversationsTheme.Dark" parent="android:Theme.Material">
-        <item name="android:colorPrimary">@color/primary800</item>
-        <item name="android:colorPrimaryDark">@color/primary900</item>
-        <item name="android:colorAccent">@color/accent</item>
+    <style name="ConversationsTheme.Dark" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="colorPrimary">@color/primary800</item>
+        <item name="colorPrimaryDark">@color/primary900</item>
+        <item name="colorAccent">@color/accent</item>
 
         <item name="attr/color_text_primary">@color/white</item>
         <item name="attr/color_text_secondary">@color/white70</item>
@@ -118,6 +119,7 @@
         <item name="attr/icon_done">@drawable/ic_done_black_24dp</item>
         <item name="attr/icon_group">@drawable/ic_group_white_24dp</item>
         <item name="attr/icon_new">@drawable/ic_add_white_24dp</item>
+        <item name="attr/icon_quote">@drawable/ic_reply_white_24dp</item>
         <item name="attr/icon_refresh">@drawable/ic_refresh_white_24dp</item>
         <item name="attr/icon_new_attachment">@drawable/ic_attach_file_white_24dp</item>
         <item name="attr/icon_not_secure">@drawable/ic_lock_open_white_24dp</item>

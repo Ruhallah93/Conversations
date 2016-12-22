@@ -1,10 +1,10 @@
 package eu.siacs.conversations.ui;
 
-import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.StringRes;
+import android.support.v7.app.ActionBar;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -140,7 +140,7 @@ public class ChooseContactActivity extends AbstractSearchableListItemActivity {
 		Intent intent = getIntent();
 		@StringRes
 		int res = intent != null ? intent.getIntExtra(EXTRA_TITLE_RES_ID,R.string.title_activity_choose_contact) : R.string.title_activity_choose_contact;
-		ActionBar bar = getActionBar();
+		ActionBar bar = getSupportActionBar();
 		if (bar != null) {
 			try {
 				bar.setTitle(res);
@@ -234,7 +234,7 @@ public class ChooseContactActivity extends AbstractSearchableListItemActivity {
 		this.mActivatedAccounts.clear();
 		for (Account account : xmppConnectionService.getAccounts()) {
 			if (account.getStatus() != Account.State.DISABLED) {
-				if (Config.DOMAIN_LOCK != null) {
+				if (Config.getDOMAIN_LOCK() != null) {
 					this.mActivatedAccounts.add(account.getJid().getLocalpart());
 				} else {
 					this.mActivatedAccounts.add(account.getJid().toBareJid().toString());

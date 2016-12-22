@@ -109,7 +109,7 @@ public class EditAccountActivity extends OmemoActivity implements OnAccountUpdat
 
 	private Jid jidToEdit;
 	private boolean mInitMode = false;
-	private boolean mUsernameMode = Config.DOMAIN_LOCK != null;
+	private boolean mUsernameMode = Config.getDOMAIN_LOCK() != null;
 	private boolean mShowOptions = false;
 	private Account mAccount;
 	private String messageFingerprint;
@@ -708,7 +708,7 @@ public class EditAccountActivity extends OmemoActivity implements OnAccountUpdat
 		if (mAccount != null) {
 			return mAccount.getJid().getDomainpart();
 		} else {
-			return Config.DOMAIN_LOCK;
+			return Config.getDOMAIN_LOCK();
 		}
 	}
 
@@ -826,7 +826,8 @@ public class EditAccountActivity extends OmemoActivity implements OnAccountUpdat
 			this.mAvatar.setVisibility(View.GONE);
 		}
 		if (this.mAccount.isOptionSet(Account.OPTION_REGISTER)) {
-			this.mRegisterNew.setVisibility(View.VISIBLE);
+			//this.mRegisterNew.setVisibility(View.VISIBLE);
+			this.mRegisterNew.setVisibility(View.GONE);
 			this.mRegisterNew.setChecked(true);
 			this.mPasswordConfirm.setText(this.mAccount.getPassword());
 		} else {

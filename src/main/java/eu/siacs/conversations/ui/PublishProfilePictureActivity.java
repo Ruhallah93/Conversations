@@ -265,7 +265,7 @@ public class PublishProfilePictureActivity extends XmppActivity {
 				loadImageIntoPreview(avatarUri);
 			}
 			String account;
-			if (Config.DOMAIN_LOCK != null) {
+			if (Config.getDOMAIN_LOCK() != null) {
 				account = this.account.getJid().getLocalpart();
 			} else {
 				account = this.account.getJid().toBareJid().toString();

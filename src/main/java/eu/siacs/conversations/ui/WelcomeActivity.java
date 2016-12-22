@@ -7,9 +7,12 @@ import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 
 import java.util.List;
 
+import eu.siacs.conversations.Config;
+import eu.siacs.conversations.ConversationsApp;
 import eu.siacs.conversations.R;
 import eu.siacs.conversations.entities.Account;
 
@@ -46,6 +49,16 @@ public class WelcomeActivity extends XmppActivity {
 				startActivity(intent);
 			}
 		});
+
+		final Button save = (Button) findViewById(R.id.save_domain_name);
+		final EditText domainName = (EditText) findViewById(R.id.domain_name);
+		save.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View view) {
+				Config.setDOMAIN_LOCK(domainName.getText().toString());
+			}
+		});
+
 		final Button useOwnProvider = (Button) findViewById(R.id.use_own_provider);
 		useOwnProvider.setOnClickListener(new View.OnClickListener() {
 			@Override

@@ -11,6 +11,7 @@ import android.content.Intent;
 import android.content.IntentSender.SendIntentException;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.util.Pair;
@@ -414,6 +415,7 @@ public class ConversationFragment extends Fragment implements EditMessage.Keyboa
 	@Override
 	public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 		final View view = inflater.inflate(R.layout.fragment_conversation, container, false);
+
 		view.setOnClickListener(null);
 		mEditMessage = (EditMessage) view.findViewById(R.id.textinput);
 		mEditMessage.setOnClickListener(new OnClickListener() {

@@ -408,7 +408,7 @@ public class ContactDetailsActivity extends OmemoActivity implements OnAccountUp
 			contactJidTv.setText(contact.getDisplayJid());
 		}
 		String account;
-		if (Config.DOMAIN_LOCK != null) {
+		if (Config.getDOMAIN_LOCK() != null) {
 			account = contact.getAccount().getJid().getLocalpart();
 		} else {
 			account = contact.getAccount().getJid().toBareJid().toString();

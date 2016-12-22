@@ -523,7 +523,7 @@ public class ConferenceDetailsActivity extends XmppActivity implements OnConvers
 		final MucOptions mucOptions = mConversation.getMucOptions();
 		final User self = mucOptions.getSelf();
 		String account;
-		if (Config.DOMAIN_LOCK != null) {
+		if (Config.getDOMAIN_LOCK() != null) {
 			account = mConversation.getAccount().getJid().getLocalpart();
 		} else {
 			account = mConversation.getAccount().getJid().toBareJid().toString();
